@@ -1,3 +1,5 @@
+require("dotenv").config();
+
 const express = require("express");
 const path = require("path");
 const bodyParser = require("body-parser");
@@ -27,10 +29,10 @@ app.use((req, res) => {
 
 app.use((err, req, res, next) => {
   console.error(err);
-  res.status(500).send("<h1>Lỗi server</h1>");
+  res.status(500).send("<h1>Lỗi server</h1><p>Không thể kết nối tới cơ sở dữ liệu.</p>");
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server is running at http://localhost:${PORT}`);
 });
 
