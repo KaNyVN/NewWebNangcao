@@ -1,12 +1,23 @@
-CREATE DATABASE IF NOT EXISTS newsdb;
+CREATE DATABASE IF NOT EXISTS newsdb
+  CHARACTER SET utf8mb4
+  COLLATE utf8mb4_unicode_ci;
 
 USE newsdb;
 
+ALTER DATABASE newsdb
+  CHARACTER SET utf8mb4
+  COLLATE utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS posts (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  title VARCHAR(255) NOT NULL,
-  description TEXT
-);
+  title VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  description TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- Chuyển cả bảng cũ sang UTF-8 nếu database đã được tạo trước đó.
+ALTER TABLE posts
+  CONVERT TO CHARACTER SET utf8mb4
+  COLLATE utf8mb4_unicode_ci;
 
 INSERT INTO posts (title, description)
 SELECT 'NodeJS', 'Lập trình backend với Node.js thuần'

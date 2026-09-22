@@ -1,10 +1,8 @@
 # NewWebNangcao
 
-Ứng dụng tin tức Express MVC. Project có thể chạy trong GitHub Codespaces mà không cần cài MySQL trực tiếp vào Ubuntu: MySQL được chạy bằng Docker Compose.
+Ứng dụng tin tức Express MVC. Project sử dụng `utf8mb4` ở database, bảng, cột và kết nối `mysql2` để hiển thị đúng tiếng Việt.
 
 ## Chạy trong GitHub Codespaces
-
-Codespaces thường có Docker sẵn. Từ thư mục gốc project:
 
 ```bash
 npm install
@@ -13,9 +11,9 @@ npm run db:up
 npm start
 ```
 
-Đợi khoảng vài giây để MySQL hoàn tất khởi tạo lần đầu, sau đó mở port `3000` trong tab **Ports** của Codespaces. Ứng dụng lắng nghe trên `0.0.0.0` để có thể truy cập qua forwarded port.
+Mở port `3000` trong tab **Ports** của Codespaces. Ứng dụng lắng nghe trên `0.0.0.0` để có thể truy cập qua forwarded port.
 
-Kiểm tra nhanh các route:
+## Kiểm tra các route
 
 - `/` - Trang chủ
 - `/about` - Giới thiệu
@@ -24,18 +22,33 @@ Kiểm tra nhanh các route:
 - `/search?keyword=...` - Tìm kiếm
 - `/login` - Đăng nhập minh họa
 
-Xem log hoặc dừng database:
+## Sửa lỗi tiếng Việt trong database hiện tại
+
+Project đã cấu hình `utf8mb4` cho MySQL database, bảng `posts` và kết nối `mysql2`. Nếu container được tạo mới, `database/init.sql` sẽ tự thiết lập đúng encoding.
+
+Nếu container cũ đã tồn tại, Docker sẽ không tự chạy lại file init. Có thể tạo lại database volume (cách đơn giản cho project học tập, dữ liệu mẫu sẽ được tạo lại):
 
 ```bash
-docker compose logs -f db
-npm run db:down
+docker compose down -v
+npm run db:up
 ```
 
-## Vì sao không dùng `localhost` mặc định?
+Nếu muốn giữ volume, chạy migration:
 
-Trong Node.js, `localhost` có thể khiến mysql2 dùng Unix socket. Trong Codespaces socket có thể không tồn tại hoặc có quyền không phù hợp, dẫn tới lỗi `/var/run/mysqld/mysqld.sock (13)`. Cấu hình mặc định dùng TCP `127.0.0.1:3306`, còn Docker Compose ánh xạ cổng MySQL ra Codespace.
+```bash
+docker compose exec db mysql -unewsuser -pnewspassword newsdb < database/fix-encoding.sql
+```
 
-Có thể thay đổi cấu hình bằng cách sửa `.env`:
+Lưu ý: migration sửa charset/collation nhưng không thể tự khôi phục chuỗi đã bị lưu sai thành `Láº­p trÃ¬nh`. Với dữ liệu mẫu bị hỏng, cách an toàn là tạo lại volume bằng `docker compose down -v` rồi `npm run db:up`.
+
+## Chạy với MySQL cài trực tiếp
+
+```bash
+sudo service mysql start
+mysql -h 127.0.0.1 -u root -p < database/init.sql
+```
+
+Nếu dùng user/password khác, sửa các biến trong `.env`:
 
 ```env
 DB_HOST=127.0.0.1
@@ -44,16 +57,3 @@ DB_USER=newsuser
 DB_PASSWORD=newspassword
 DB_NAME=newsdb
 ```
-
-Nếu chạy Node.js trong một container cùng Compose, đổi `DB_HOST` thành `db`.
-
-## Nếu Codespace không có Docker
-
-Có thể dùng MySQL local, nhưng phải chạy MySQL qua TCP và tạo database:
-
-```bash
-sudo service mysql start
-mysql -h 127.0.0.1 -u root -p < database/init.sql
-```
-
-Sau đó chỉnh `.env` cho đúng user và password. Không dùng `mysqladmin -u root ping` không có `-h`, vì lệnh đó kiểm tra Unix socket thay vì TCP.
